@@ -1,4 +1,36 @@
 ---
+import { marked } from "marked";
+
+interface Post {
+	title: string;
+	slug: string;
+	content: {
+		markdown: string;
+	};
+}
+
+const query = {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		query: `
+      {
+        blogPosts {
+          id
+          title
+          slug
+          content {
+            markdown
+          }
+        }
+      }`,
+	}),
+};
+
+const response = await fetch(import.meta.env.HYGRAPH_ENDPOINT, query);
+const json = await response.json();
+console.log(json.data.blogPosts);
+const posts: Post[] = json.data.blogPosts;
 ---
 
 <html lang="en">
@@ -11,5 +43,13 @@
 	</head>
 	<body>
 		<h1>Astro</h1>
+		{
+			posts.map((p) => (
+				<div>
+					<h2>{p.title}</h2>
+					<div set:html={marked(p.content.markdown)} />
+				</div>
+			))
+		}
 	</body>
 </html>
